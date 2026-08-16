@@ -28,6 +28,16 @@ func Build(req Request) (*Schedule, error) {
 	if end.Before(start) {
 		return nil, fmt.Errorf("end date %s is before start date %s", req.End, req.Start)
 	}
+	for eng, dates := range req.Blackouts {
+		for date, active := range dates {
+			if !active {
+				continue
+			}
+			if _, err := time.Parse(DateLayout, date); err != nil {
+				return nil, fmt.Errorf("invalid blackout date %q for %q: %w", date, eng, err)
+			}
+		}
+	}
 
 	n := len(req.Roster)
 	if n > 0 && (req.StartIndex < 0 || req.StartIndex >= n) {
